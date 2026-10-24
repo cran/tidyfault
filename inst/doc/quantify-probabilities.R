@@ -1,0 +1,78 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  fig.height = 4,
+  fig.align = "center",
+  dpi = 300
+)
+
+## -----------------------------------------------------------------------------
+library(tidyfault)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tibble)
+
+data("db_nodes")
+data("db_edges")
+data("db_outcomes_binary")
+data("db_probs")
+
+f <- curate(db_nodes, db_edges) |>
+  equate() |>
+  formulate()
+
+db_outcomes_probs <- populate(db_outcomes_binary, db_probs)
+knitr::kable(head(db_outcomes_probs, 6), digits = 3)
+
+## -----------------------------------------------------------------------------
+prob_top <- quantify(f, newdata = db_outcomes_probs, prob = TRUE)
+prob_top
+summary(prob_top)
+
+## -----------------------------------------------------------------------------
+data("it_security_nodes")
+data("it_security_edges")
+
+f_sec <- formulate(equate(curate(it_security_nodes, it_security_edges)))
+
+# Illustrative constant failure rates (per hour), as in the paper source
+it_security_rates <- tibble::tibble(
+  DA = 0.25 / 24 / 365,
+  EP = 0.20 / 24 / 365,
+  IM = 0.09 / 24 / 365,
+  LR = 0.13 / 24 / 365,
+  MN = 0.29 / 24 / 365,
+  PO = 0.16 / 24 / 365,
+  PC = 0.22 / 24 / 365,
+  PM = 0.15 / 24 / 365,
+  VS = 0.11 / 24 / 365,
+  WB = 0.17 / 24 / 365
+)
+rate_names <- names(it_security_rates)
+
+t_hours <- seq(0, 50000, by = 1000)
+it_security_projections <- crossing(t = t_hours, it_security_rates) |>
+  mutate(across(all_of(rate_names), ~ pexp(q = t, rate = .x)))
+
+it_security_projections$outcome <- quantify(
+  f_sec,
+  newdata = it_security_projections[, rate_names, drop = FALSE],
+  prob = TRUE
+)
+
+it_security_projections |>
+  select(t, outcome) |>
+  head(6)
+
+## -----------------------------------------------------------------------------
+ggplot(it_security_projections, aes(x = t, y = outcome)) +
+  geom_line() +
+  labs(
+    x = "Time (hours)",
+    y = "Top-event probability"
+  )
+

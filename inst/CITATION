@@ -1,0 +1,17 @@
+bibentry(
+  bibtype = "Manual",
+  header = "To cite tidyfault in publications, please use:",
+  title = "tidyfault: Tidy Fault Tree Analysis",
+  author = c(
+    person("Timothy", "Fraser", email = "tmf77@cornell.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-4509-0244")),
+    person("Jingyao", "Tong", email = "jingyaotong6@gmail.com", role = "aut",
+           comment = c(ORCID = "0009-0009-6147-756X"))
+  ),
+  year = "2026",
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/timothyfraser/tidyfault",
+  footer = paste("An article describing tidyfault is in preparation for the",
+                 "Journal of Statistical Software; cite this entry for the software",
+                 "until it appears.")
+)
